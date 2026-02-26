@@ -8,6 +8,8 @@ import {
   MAIN_GROUP_FOLDER,
   POLL_INTERVAL,
   STORE_DIR,
+  TELEGRAM_BOT_TOKEN,
+  TELEGRAM_ONLY,
   TRIGGER_PATTERN,
 } from './config.js';
 import { WhatsAppChannel } from './channels/whatsapp.js';
@@ -15,6 +17,7 @@ import {
   GITHUB_JID,
   GitHubWebhookChannel,
 } from './channels/github-webhook.js';
+import { TelegramChannel } from './channels/telegram.js';
 import {
   ContainerOutput,
   runContainerAgent,
@@ -485,14 +488,27 @@ async function main(): Promise<void> {
   channels.push(githubWebhook);
   await githubWebhook.connect();
 
-  // Create and connect WhatsApp (skip if auth not set up — it calls process.exit on QR)
-  const whatsappAuthDir = path.join(STORE_DIR, 'auth');
-  if (fs.existsSync(whatsappAuthDir) && fs.readdirSync(whatsappAuthDir).length > 0) {
-    whatsapp = new WhatsAppChannel(channelOpts);
-    channels.push(whatsapp);
-    await whatsapp.connect();
+  // Telegram channel (enabled when TELEGRAM_BOT_TOKEN is set)
+  if (TELEGRAM_BOT_TOKEN) {
+    const telegram = new TelegramChannel(TELEGRAM_BOT_TOKEN, channelOpts);
+    channels.push(telegram);
+    await telegram.connect();
   } else {
-    logger.info('WhatsApp auth not found, skipping WhatsApp channel (run setup to enable)');
+    logger.info('TELEGRAM_BOT_TOKEN not set, skipping Telegram channel');
+  }
+
+  // Create and connect WhatsApp (skip if auth not set up or TELEGRAM_ONLY)
+  if (TELEGRAM_ONLY) {
+    logger.info('TELEGRAM_ONLY mode, skipping WhatsApp channel');
+  } else {
+    const whatsappAuthDir = path.join(STORE_DIR, 'auth');
+    if (fs.existsSync(whatsappAuthDir) && fs.readdirSync(whatsappAuthDir).length > 0) {
+      whatsapp = new WhatsAppChannel(channelOpts);
+      channels.push(whatsapp);
+      await whatsapp.connect();
+    } else {
+      logger.info('WhatsApp auth not found, skipping WhatsApp channel (run setup to enable)');
+    }
   }
 
   // Auto-register the github group so webhook messages get processed

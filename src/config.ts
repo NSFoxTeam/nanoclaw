@@ -10,6 +10,8 @@ const envConfig = readEnvFile([
   'ASSISTANT_NAME',
   'ASSISTANT_HAS_OWN_NUMBER',
   'GITHUB_WEBHOOK_GROUP_FOLDER',
+  'TELEGRAM_BOT_TOKEN',
+  'TELEGRAM_ONLY',
 ]);
 
 export const ASSISTANT_NAME =
@@ -68,6 +70,12 @@ export const GITHUB_WEBHOOK_GROUP_FOLDER =
   process.env.GITHUB_WEBHOOK_GROUP_FOLDER ||
   envConfig.GITHUB_WEBHOOK_GROUP_FOLDER ||
   '';
+
+// Telegram channel config
+export const TELEGRAM_BOT_TOKEN =
+  process.env.TELEGRAM_BOT_TOKEN || envConfig.TELEGRAM_BOT_TOKEN || '';
+export const TELEGRAM_ONLY =
+  (process.env.TELEGRAM_ONLY || envConfig.TELEGRAM_ONLY) === 'true';
 
 // Timezone for scheduled tasks (cron expressions, etc.)
 // Uses system timezone by default
