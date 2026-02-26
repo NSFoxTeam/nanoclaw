@@ -211,7 +211,7 @@ export class GitHubWebhookChannel implements Channel {
       is_from_me: false,
     };
 
-    this.opts.onMessage(GITHUB_JID, msg);
+    // Chat metadata must be stored before messages (FK constraint on chat_jid)
     this.opts.onChatMetadata(
       GITHUB_JID,
       msg.timestamp,
@@ -219,6 +219,7 @@ export class GitHubWebhookChannel implements Channel {
       'github-webhook',
       false,
     );
+    this.opts.onMessage(GITHUB_JID, msg);
 
     logger.info({ messageId: msg.id, senderName }, 'Webhook message injected');
   }
