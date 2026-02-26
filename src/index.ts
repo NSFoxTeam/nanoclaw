@@ -7,6 +7,7 @@ import {
   IDLE_TIMEOUT,
   MAIN_GROUP_FOLDER,
   POLL_INTERVAL,
+  STORE_DIR,
   TRIGGER_PATTERN,
 } from './config.js';
 import { WhatsAppChannel } from './channels/whatsapp.js';
@@ -479,15 +480,20 @@ async function main(): Promise<void> {
     registeredGroups: () => registeredGroups,
   };
 
-  // Create and connect channels
-  whatsapp = new WhatsAppChannel(channelOpts);
-  channels.push(whatsapp);
-  await whatsapp.connect();
-
   // GitHub webhook channel (enabled when GITHUB_WEBHOOK_SECRET or API_KEY is set)
   const githubWebhook = new GitHubWebhookChannel(channelOpts);
   channels.push(githubWebhook);
   await githubWebhook.connect();
+
+  // Create and connect WhatsApp (skip if auth not set up — it calls process.exit on QR)
+  const whatsappAuthDir = path.join(STORE_DIR, 'auth');
+  if (fs.existsSync(whatsappAuthDir) && fs.readdirSync(whatsappAuthDir).length > 0) {
+    whatsapp = new WhatsAppChannel(channelOpts);
+    channels.push(whatsapp);
+    await whatsapp.connect();
+  } else {
+    logger.info('WhatsApp auth not found, skipping WhatsApp channel (run setup to enable)');
+  }
 
   // Auto-register the github group so webhook messages get processed
   if (GITHUB_WEBHOOK_GROUP_FOLDER && !registeredGroups[GITHUB_JID]) {
