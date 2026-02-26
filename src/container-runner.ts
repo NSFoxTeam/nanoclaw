@@ -125,6 +125,8 @@ function buildVolumeMounts(
             // Enable Claude's memory feature (persists user preferences between sessions)
             // https://code.claude.com/docs/en/memory#manage-auto-memory
             CLAUDE_CODE_DISABLE_AUTO_MEMORY: '0',
+            // Use Opus 4.6 as the default model
+            CLAUDE_CODE_USE_MODEL: 'claude-opus-4-6',
           },
         },
         null,
