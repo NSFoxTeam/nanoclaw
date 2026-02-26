@@ -3,12 +3,17 @@ import path from 'path';
 
 import {
   ASSISTANT_NAME,
+  GITHUB_WEBHOOK_GROUP_FOLDER,
   IDLE_TIMEOUT,
   MAIN_GROUP_FOLDER,
   POLL_INTERVAL,
   TRIGGER_PATTERN,
 } from './config.js';
 import { WhatsAppChannel } from './channels/whatsapp.js';
+import {
+  GITHUB_JID,
+  GitHubWebhookChannel,
+} from './channels/github-webhook.js';
 import {
   ContainerOutput,
   runContainerAgent,
@@ -478,6 +483,22 @@ async function main(): Promise<void> {
   whatsapp = new WhatsAppChannel(channelOpts);
   channels.push(whatsapp);
   await whatsapp.connect();
+
+  // GitHub webhook channel (enabled when GITHUB_WEBHOOK_SECRET or API_KEY is set)
+  const githubWebhook = new GitHubWebhookChannel(channelOpts);
+  channels.push(githubWebhook);
+  await githubWebhook.connect();
+
+  // Auto-register the github group so webhook messages get processed
+  if (GITHUB_WEBHOOK_GROUP_FOLDER && !registeredGroups[GITHUB_JID]) {
+    registerGroup(GITHUB_JID, {
+      name: 'GitHub Webhook',
+      folder: GITHUB_WEBHOOK_GROUP_FOLDER,
+      trigger: `@${ASSISTANT_NAME}`,
+      added_at: new Date().toISOString(),
+      requiresTrigger: false,
+    });
+  }
 
   // Start subsystems (independently of connection handler)
   startSchedulerLoop({
