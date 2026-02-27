@@ -36,24 +36,52 @@
 
 ---
 
+## Project Board
+
+Статус на доске **ОБЯЗАТЕЛЕН** при каждом переходе. Используй:
+
+```bash
+# 1. Получить Item ID карточки
+ITEM_ID=$(gh project item-list 2 --owner NSFoxTeam --format json | jq -r '.items[] | select(.content.number == <N> and (.content.repository | endswith("/<REPO-NAME>"))) | .id')
+
+# 2. Сменить статус
+gh project item-edit --project-id PVT_kwDOD74Y5M4BQO_b --id "$ITEM_ID" --field-id PVTSSF_lADOD74Y5M4BQO_bzg-adCo --single-select-option-id <OPTION_ID>
+```
+
+| Статус | Option ID |
+|--------|-----------|
+| Backlog | `5d9c75da` |
+| To Do | `0c528b90` |
+| Planning | `3f15084a` |
+| In Progress | `f82396e3` |
+| Code Review | `b748c7c8` |
+| Human Review | `94988534` |
+| Done | `3f350bbb` |
+
+---
+
 ## Workflow
 
-### 1. Claim
+### 1. Claim (→ Planning)
 
 Триггер: issue назначен на тебя.
 
-1. `gh issue comment <N> --repo <REPO> --body "CLAIM: Vlad берёт задачу"`
-2. `gh issue edit <N> --repo <REPO> --add-assignee vlad-nsfox`
-3. Напиши план — разбей на **фазы реализации** (чекбоксы `- [ ] Phase 1: ...` в body issue)
-4. `Plan ready, @viktor-nsfox review please`
-5. Жди `APPROVED` от Viktor. `Changes requested:` → правь
-6. **Max 5 итераций** → In Progress с best-effort
+1. **Board → Planning**
+2. `gh issue comment <N> --repo <REPO> --body "CLAIM: Vlad берёт задачу"`
+3. `gh issue edit <N> --repo <REPO> --add-assignee vlad-nsfox`
+4. Напиши план — разбей на **фазы реализации** (чекбоксы `- [ ] Phase 1: ...` в body issue)
+5. `Plan ready, @viktor-nsfox review please`
+6. Жди `APPROVED` от Viktor. `Changes requested:` → правь
+7. **Max 5 итераций** → In Progress с best-effort
 
-### 2. Clone + Setup
+### 2. Clone + Setup (→ In Progress)
 
-1. `gh repo clone <REPO> /workspace/group/<repo-name>`
-2. `cd /workspace/group/<repo-name>`
-3. Проверь README / структуру проекта
+Триггер: `APPROVED` от Viktor или 5 итераций.
+
+1. **Board → In Progress**
+2. `gh repo clone <REPO> /workspace/group/<repo-name>`
+3. `cd /workspace/group/<repo-name>`
+4. Проверь README / структуру проекта
 
 ### 3. Implement (Coding Orchestrator)
 
@@ -62,6 +90,14 @@
 
 Для каждой фазы → используй Coding Orchestrator (см. ниже).
 
+**После завершения каждой фазы** — отметь чекбокс в issue body:
+```bash
+# Получить текущий body, заменить [ ] на [x] для нужной фазы
+BODY=$(gh issue view <N> --repo <REPO> --json body -q .body)
+UPDATED=$(echo "$BODY" | sed 's/- \[ \] Phase <M>/- [x] Phase <M>/')
+gh issue edit <N> --repo <REPO> --body "$UPDATED"
+```
+
 ### 4. PR + CI
 
 1. `gh pr create --title "feat: описание" --body "Closes #<N>"`
@@ -69,33 +105,36 @@
 3. CI passed → `📋 PR created: <url>. CI ✅`
 4. CI failed → spawn fix teammate, `❌ CI failed: <причина>. Fixing...`
 
-### 5. Code Review
+### 5. Code Review (→ Code Review)
 
-Запроси: `@viktor-nsfox code review please: PR #<number>`
+1. **Board → Code Review**
+2. Запроси: `@viktor-nsfox code review please: PR #<number>`
 
 **Как автор:**
 1. Fix по замечаниям → push → CI → `Fixes applied, CI ✅, ready for round N+1`
 2. **Max 3 раунда** → эскалация
 
-### 6. Notify + Approval
+### 6. Notify + Approval (→ Human Review)
 
 После `APPROVED` от ревьюера:
 
-1. `gh issue comment <N> --repo <REPO> --body "Ready for @stensmir: PR #<number>, CI ✅, review APPROVED."`
-2. Уведоми Юрия через Telegram:
+1. **Board → Human Review**
+2. `gh issue comment <N> --repo <REPO> --body "Ready for @stensmir: PR #<number>, CI ✅, review APPROVED."`
+3. Уведоми Юрия через Telegram:
    ```
    mcp__nanoclaw__send_message:
      content: "PR #<number> ready for review: <url>"
    ```
-3. **СТОП.** Жди `@stensmir`.
+4. **СТОП.** Жди `@stensmir`.
 
-### 7. Merge & Close
+### 7. Merge & Close (→ Done)
 
 Триггер: `APPROVED` от `@stensmir`.
 
 1. `gh pr merge <number> --squash --delete-branch`
 2. `gh issue close <N> --repo <REPO>`
-3. `gh issue comment <N> --repo <REPO> --body "Done. Merged via PR #<number>."`
+3. **Board → Done**
+4. `gh issue comment <N> --repo <REPO> --body "Done. Merged via PR #<number>."`
 
 ---
 
@@ -244,6 +283,8 @@ Task tool:
 6. **Issue комментарий** на каждом событии
 7. **Backlog** → игнорируй
 8. **gh repo clone** ПЕРЕД началом работы
+9. **Board статус** — менять при КАЖДОМ переходе между шагами
+10. **Фазы-чекбоксы** — отмечать `[x]` в issue body после завершения каждой фазы
 
 ## ДЕЙСТВИЕ > СЛОВА
 
