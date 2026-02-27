@@ -318,11 +318,11 @@ describe('GroupQueue', () => {
     const taskFn = vi.fn(async () => {});
     queue.enqueueTask('group1@g.us', 'task-1', taskFn);
 
-    // _close SHOULD have been written (container is idle)
+    // closeStdin is a no-op in CLI mode (v1), no _close sentinel
     const closeWrites = writeFileSync.mock.calls.filter(
       (call) => typeof call[0] === 'string' && call[0].endsWith('_close'),
     );
-    expect(closeWrites).toHaveLength(1);
+    expect(closeWrites).toHaveLength(0);
 
     resolveProcess!();
     await vi.advanceTimersByTimeAsync(10);
@@ -434,14 +434,14 @@ describe('GroupQueue', () => {
     );
     expect(closeWrites).toHaveLength(0);
 
-    // Now container becomes idle — should preempt because task is pending
+    // closeStdin is a no-op in CLI mode (v1) — no preemption via _close
     writeFileSync.mockClear();
     queue.notifyIdle('group1@g.us');
 
     closeWrites = writeFileSync.mock.calls.filter(
       (call) => typeof call[0] === 'string' && call[0].endsWith('_close'),
     );
-    expect(closeWrites).toHaveLength(1);
+    expect(closeWrites).toHaveLength(0);
 
     resolveProcess!();
     await vi.advanceTimersByTimeAsync(10);

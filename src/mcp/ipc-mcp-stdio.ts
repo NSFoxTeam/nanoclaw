@@ -1,6 +1,6 @@
 /**
  * Stdio MCP Server for NanoClaw
- * Standalone process that agent teams subagents can inherit.
+ * Standalone process that Claude Code and agent teams subagents can inherit.
  * Reads context from environment variables, writes IPC files for the host.
  */
 
@@ -11,11 +11,11 @@ import fs from 'fs';
 import path from 'path';
 import { CronExpressionParser } from 'cron-parser';
 
-const IPC_DIR = '/workspace/ipc';
+const IPC_DIR = process.env.NANOCLAW_IPC_DIR || path.join(process.cwd(), 'data', 'ipc');
 const MESSAGES_DIR = path.join(IPC_DIR, 'messages');
 const TASKS_DIR = path.join(IPC_DIR, 'tasks');
 
-// Context from environment variables (set by the agent runner)
+// Context from environment variables (set by the CLI runner)
 const chatJid = process.env.NANOCLAW_CHAT_JID!;
 const groupFolder = process.env.NANOCLAW_GROUP_FOLDER!;
 const isMain = process.env.NANOCLAW_IS_MAIN === '1';
