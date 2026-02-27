@@ -60,16 +60,15 @@ gh project item-edit --project-id PVT_kwDOD74Y5M4BQO_b --id "$ITEM_ID" --field-i
 
 ---
 
-## Issue Types (labels)
+## Issue Types
 
-| Label | Описание |
-|-------|----------|
-| `type:epic` | Большая инициатива из нескольких stories |
-| `type:story` | User-facing deliverable внутри epic |
-| `type:feature` | Новая фича |
-| `type:bugfix` | Исправление бага |
-| `type:task` | Техническая задача без прямой user value |
-| `type:research` | Исследование / spike |
+| Type | Описание |
+|------|----------|
+| Epic | Большая инициатива из нескольких stories |
+| Story | User-facing deliverable внутри epic |
+| Feature | Новая фича |
+| Bug | Баг |
+| Task | Техническая задача |
 
 ---
 
