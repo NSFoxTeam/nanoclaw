@@ -76,7 +76,10 @@ gh project item-edit --project-id PVT_kwDOD74Y5M4BQO_b --id "$ITEM_ID" --field-i
 # 1. Создать Task
 TASK_URL=$(gh issue create --repo <REPO> --title "описание подзадачи" --type Task --body "Sub-issue of #<N>")
 
-# 2. Привязать как sub-issue к родительской Feature
+# 2. Добавить на Project Board
+gh project item-add 2 --owner NSFoxTeam --url "$TASK_URL"
+
+# 3. Привязать как sub-issue к родительской Feature
 PARENT_ID=$(gh issue view <N> --repo <REPO> --json id -q .id)
 gh api graphql -f query='mutation($parent:ID!,$child:String!){ addSubIssue(input:{issueId:$parent, subIssueUrl:$child}){ issueId } }' -f parent="$PARENT_ID" -f child="$TASK_URL"
 ```
