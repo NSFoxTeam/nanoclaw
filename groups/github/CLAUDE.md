@@ -64,11 +64,22 @@ gh project item-edit --project-id PVT_kwDOD74Y5M4BQO_b --id "$ITEM_ID" --field-i
 
 | Type | Описание |
 |------|----------|
-| Epic | Большая инициатива из нескольких stories |
-| Story | User-facing deliverable внутри epic |
-| Feature | Новая фича |
+| Feature | Фича / новая функциональность |
 | Bug | Баг |
-| Task | Техническая задача |
+| Task | Техническая задача, подзадача фичи |
+
+### Декомпозиция
+
+Если Feature слишком большая для одного PR — декомпозируй на Task'и:
+1. Создай отдельные issue с типом **Task** для каждой части
+2. В body каждого Task укажи ссылку на родительскую Feature: `Part of #<N>`
+3. В родительской Feature добавь чекбоксы со ссылками: `- [ ] #<task-number> — описание`
+
+```bash
+gh issue create --repo <REPO> --title "Task: описание подзадачи" --type Task --body "Part of #<N>"
+```
+
+Если Feature укладывается в один PR — просто делай как обычно, без декомпозиции.
 
 ---
 
