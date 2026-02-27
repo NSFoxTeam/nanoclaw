@@ -12,6 +12,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/add-to-project@v1.0.2
+        id: add
         with:
           project-url: https://github.com/orgs/NSFoxTeam/projects/2
           github-token: ${{ secrets.ADD_TO_PROJECT_TOKEN }}
+
+      - name: Set Backlog status
+        env:
+          GH_TOKEN: ${{ secrets.ADD_TO_PROJECT_TOKEN }}
+        run: |
+          gh project item-edit \
+            --project-id PVT_kwDOD74Y5M4BQO_b \
+            --id "${{ steps.add.outputs.itemId }}" \
+            --field-id PVTSSF_lADOD74Y5M4BQO_bzg-adCo \
+            --single-select-option-id 5d9c75da
