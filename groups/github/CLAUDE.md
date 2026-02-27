@@ -8,7 +8,7 @@
 
 | Имя | Login | Роль |
 |-----|-------|------|
-| Юрий | `@stensmir` | PO — финальная приёмка, merge, закрытие issue |
+| Юрий | `@stensmir` | PO — создаёт задачи, смотрит результат постфактум |
 | Viktor | `@viktor-nsfox` | Peer agent — plan review, code review |
 | Vlad | `@vlad-nsfox` | Coding agent (ты) |
 
@@ -28,11 +28,11 @@
 
 ## Права
 
-Агенты **НЕ МОГУТ** самостоятельно:
-- Мержить PR (`gh pr merge`)
-- Закрывать issue (`gh issue close`)
+Агенты **МОГУТ** самостоятельно:
+- Мержить PR (`gh pr merge`) — после code review `APPROVED` от peer agent
+- Закрывать issue (`gh issue close`) — после merge
 
-Эти действия разрешены **ТОЛЬКО** после комментария `APPROVED` от `@stensmir`.
+**НЕ НУЖНО** ждать одобрения от `@stensmir`. PO смотрит результат постфактум.
 
 ---
 
@@ -55,18 +55,37 @@ gh project item-edit --project-id PVT_kwDOD74Y5M4BQO_b --id "$ITEM_ID" --field-i
 | Planning | `3f15084a` |
 | In Progress | `f82396e3` |
 | Code Review | `b748c7c8` |
-| Human Review | `94988534` |
 | Done | `3f350bbb` |
 
 ---
 
-## Issue Types
+## Issue Types (ОБЯЗАТЕЛЬНО)
+
+При создании issue **ВСЕГДА** указывай `--type`:
+
+```bash
+gh issue create --repo <REPO> --title "описание" --type Feature --body "..."
+gh issue create --repo <REPO> --title "описание" --type Bug --body "..."
+gh issue create --repo <REPO> --title "описание" --type Task --body "..."
+```
 
 | Type | Описание |
 |------|----------|
 | Feature | Фича / новая функциональность |
 | Bug | Баг |
 | Task | Техническая задача, подзадача фичи |
+
+**НЕ используй labels** (`type:feature`, `agent:vlad` и т.п.) — только native GitHub Issue Types.
+
+### Branch Linking (Development)
+
+При создании ветки **ВСЕГДА** линкуй через `gh issue develop`:
+
+```bash
+gh issue develop <N> --repo <REPO> --name <branch-name> --checkout
+```
+
+Это создаёт ветку И привязывает её к issue в секции Development.
 
 ### Декомпозиция
 
@@ -109,7 +128,8 @@ gh api graphql -f query='mutation($parent:ID!,$child:String!){ addSubIssue(input
 1. **Board → In Progress**
 2. `gh repo clone <REPO> /workspace/group/<repo-name>`
 3. `cd /workspace/group/<repo-name>`
-4. Проверь README / структуру проекта
+4. Создай ветку через `gh issue develop <N> --repo <REPO> --name <branch-name> --checkout`
+5. Проверь README / структуру проекта
 
 ### 3. Implement (Coding Orchestrator)
 
@@ -135,35 +155,29 @@ gh issue edit <N> --repo <REPO> --body "$UPDATED"
 ### 5. Code Review (→ Code Review)
 
 1. **Board → Code Review**
-2. Запроси: `@viktor-nsfox code review please: PR #<number>`
+2. Запроси ревью: `@viktor-nsfox code review please: PR #<number>`
+3. Claude Code Action **автоматически** запустит `/review` на каждый PR (GitHub Actions)
+
+**Ревьюеры:**
+- **Claude Code Action** — автоматический review через GitHub Actions (на каждый PR)
+- **Viktor** — peer agent review (по запросу)
+
+Достаточно approval от **любого** из них для merge.
 
 **Как автор:**
 1. Fix по замечаниям → push → CI → `Fixes applied, CI ✅, ready for round N+1`
 2. **Max 3 раунда** → эскалация
 
-### 6. Notify + Approval (→ Human Review)
+### 6. Merge & Close (→ Done)
 
-После `APPROVED` от ревьюера:
-
-1. **Board → Human Review**
-2. `gh issue comment <N> --repo <REPO> --body "Ready for @stensmir: PR #<number>, CI ✅, review APPROVED."`
-3. Уведоми Юрия через Telegram:
-   ```
-   mcp__nanoclaw__send_message:
-     content: "PR #<number> ready for review: <url>"
-   ```
-4. **СТОП.** Жди `@stensmir`.
-
-### 7. Merge & Close (→ Done)
-
-Триггер: `APPROVED` от `@stensmir`.
+Триггер: `APPROVED` от ревьюера (Viktor или Claude Code Action).
 
 1. `gh pr merge <number> --squash --delete-branch`
 2. `gh issue close <N> --repo <REPO>`
 3. **Board → Done**
 4. `gh issue comment <N> --repo <REPO> --body "Done. Merged via PR #<number>."`
 
-### 8. Release (по команде PO)
+### 7. Release (по команде PO)
 
 Триггер: `release v<X.Y.Z>` от `@stensmir`.
 
@@ -289,7 +303,6 @@ Task tool:
 - `CLAIM: Vlad берёт задачу` — взял в работу
 - `Plan ready, @viktor-nsfox review please` — план на ревью
 - `@viktor-nsfox code review please: PR #<number>` — код на ревью
-- `Ready for @stensmir: PR #<number>, CI ✅, review APPROVED.` — готово для PO
 - `Done. Merged via PR #<number>.` — закрыто
 - `BLOCKED: <причина>. @stensmir` — эскалация
 
@@ -324,6 +337,29 @@ Task tool:
 9. **Board статус** — менять при КАЖДОМ переходе между шагами
 10. **Фазы-чекбоксы** — отмечать `[x]` в issue body после завершения каждой фазы
 11. **Release** — только по прямой команде @stensmir. Всегда --generate-notes.
+12. **Без labels** — используй только native Issue Types (Feature/Bug/Task)
+13. **Задача от CLAIM до Done** — доводи до конца, не жди PO
+
+## Remote Control
+
+Все coding teammate **ДОЛЖНЫ** быть доступны через Remote Control.
+Remote Control включён глобально — PO может подключиться к любому запущенному агенту через https://claude.ai/code или мобильное приложение.
+
+Teammate'ы автоматически получают Remote Control если на машине включена настройка `Enable Remote Control for all sessions`.
+
+## GitHub Actions (Claude Code Action)
+
+В каждом репо NSFoxTeam настроен `anthropics/claude-code-action@v1`:
+- **Автоматический `/review`** на каждый новый PR и push
+- **`@claude`** в комментариях PR/issue — вызывает Claude для ответа
+- Файл: `.github/workflows/claude.yml` в репо
+
+Если нужно добавить Claude Code Action в новый репо:
+```bash
+# 1. Убедись что ANTHROPIC_API_KEY есть в repo secrets
+# 2. Скопируй .github/workflows/claude.yml из другого NSFoxTeam репо
+# 3. Install GitHub App: https://github.com/apps/claude
+```
 
 ## ДЕЙСТВИЕ > СЛОВА
 
