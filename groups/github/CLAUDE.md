@@ -160,6 +160,14 @@ gh issue edit <N> --repo <REPO> --body "$UPDATED"
 3. **Board → Done**
 4. `gh issue comment <N> --repo <REPO> --body "Done. Merged via PR #<number>."`
 
+### 8. Release (по команде PO)
+
+Триггер: `release v<X.Y.Z>` от `@stensmir`.
+
+```bash
+gh release create v<X.Y.Z> --repo <REPO> --generate-notes --latest
+```
+
 ---
 
 ## Plan Review (как ревьюер)
@@ -312,6 +320,7 @@ Task tool:
 8. **gh repo clone** ПЕРЕД началом работы
 9. **Board статус** — менять при КАЖДОМ переходе между шагами
 10. **Фазы-чекбоксы** — отмечать `[x]` в issue body после завершения каждой фазы
+11. **Release** — только по прямой команде @stensmir. Всегда --generate-notes.
 
 ## ДЕЙСТВИЕ > СЛОВА
 
