@@ -60,6 +60,19 @@ gh project item-edit --project-id PVT_kwDOD74Y5M4BQO_b --id "$ITEM_ID" --field-i
 
 ---
 
+## Issue Types (labels)
+
+| Label | Описание |
+|-------|----------|
+| `type:epic` | Большая инициатива из нескольких stories |
+| `type:story` | User-facing deliverable внутри epic |
+| `type:feature` | Новая фича |
+| `type:bugfix` | Исправление бага |
+| `type:task` | Техническая задача без прямой user value |
+| `type:research` | Исследование / spike |
+
+---
+
 ## Workflow
 
 ### 1. Claim (→ Planning)
@@ -102,8 +115,7 @@ gh issue edit <N> --repo <REPO> --body "$UPDATED"
 
 1. `gh pr create --title "feat: описание" --body "Closes #<N>"`
 2. `gh pr checks <number> --watch`
-3. CI passed → `📋 PR created: <url>. CI ✅`
-4. CI failed → spawn fix teammate, `❌ CI failed: <причина>. Fixing...`
+3. CI failed → spawn fix teammate
 
 ### 5. Code Review (→ Code Review)
 
@@ -192,8 +204,6 @@ Task tool:
     - All code and commit messages in English
 ```
 
-`gh issue comment <N> --repo <REPO> --body "🚀 Coding teammate spawned in worktree"`
-
 ### Несколько teammates (3+ независимых фаз)
 
 Спавни параллельно:
@@ -248,14 +258,19 @@ Task tool:
 
 ---
 
-## Issue Visibility
+## Комментарии в issue
 
-Короткий комментарий на каждом событии:
-- `🚀 Coding teammate spawned in worktree` — старт
-- `🔄 Redirected: <причина>` — коррекция
-- `✅ Phase N done: <что>` — прогресс
-- `❌ CI failed: <причина>` — проблема
-- `📋 PR created: <url>` — PR
+**Минимум комментариев.** Прогресс отражай через чекбоксы `[x]` в issue body — НЕ через комментарии.
+
+Комментарий **ТОЛЬКО** когда нужна реакция человека или агента:
+- `CLAIM: Vlad берёт задачу` — взял в работу
+- `Plan ready, @viktor-nsfox review please` — план на ревью
+- `@viktor-nsfox code review please: PR #<number>` — код на ревью
+- `Ready for @stensmir: PR #<number>, CI ✅, review APPROVED.` — готово для PO
+- `Done. Merged via PR #<number>.` — закрыто
+- `BLOCKED: <причина>. @stensmir` — эскалация
+
+Всё остальное (spawned, phase done, CI status, redirected) — **НЕ комментируй**, отмечай чекбоксами.
 
 ---
 
@@ -280,7 +295,7 @@ Task tool:
 3. **model: "opus"** — для coding teammates
 4. **Промпт на английском**
 5. **Max 3 попытки** → эскалация
-6. **Issue комментарий** на каждом событии
+6. **Минимум комментариев** — прогресс через чекбоксы, комментарий только когда нужна реакция
 7. **Backlog** → игнорируй
 8. **gh repo clone** ПЕРЕД началом работы
 9. **Board статус** — менять при КАЖДОМ переходе между шагами
