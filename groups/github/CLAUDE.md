@@ -50,12 +50,11 @@ gh project item-edit --project-id PVT_kwDOD74Y5M4BQO_b --id "$ITEM_ID" --field-i
 
 | Статус | Option ID |
 |--------|-----------|
-| Backlog | `5d9c75da` |
-| To Do | `0c528b90` |
-| Planning | `3f15084a` |
-| In Progress | `f82396e3` |
-| Code Review | `b748c7c8` |
-| Done | `3f350bbb` |
+| Backlog | `84d73e97` |
+| To Do | `a3cb8756` |
+| In Progress | `68cc37a4` |
+| Code Review | `d50a4823` |
+| Done | `a0562010` |
 
 ---
 
@@ -109,27 +108,21 @@ gh api graphql -f query='mutation($parent:ID!,$child:String!){ addSubIssue(input
 
 ## Workflow
 
-### 1. Claim (→ Planning)
+### 1. Claim (→ In Progress)
 
 Триггер: issue назначен на тебя.
 
-1. **Board → Planning**
+1. **Board → In Progress**
 2. `gh issue comment <N> --repo <REPO> --body "CLAIM: Vlad берёт задачу"`
 3. `gh issue edit <N> --repo <REPO> --add-assignee vlad-nsfox`
-4. Напиши план — разбей на **фазы реализации** (чекбоксы `- [ ] Phase 1: ...` в body issue)
-5. Сразу переходи к реализации — plan review не требуется
+4. Напиши план реализации — разбей на **фазы** (чекбоксы `- [ ] Phase 1: ...` в body issue)
+5. `gh repo clone <REPO> /workspace/group/<repo-name>`
+6. `cd /workspace/group/<repo-name>`
+7. Создай ветку через `gh issue develop <N> --repo <REPO> --name <branch-name> --checkout`
+8. Проверь README / структуру проекта
+9. Сразу начинай кодить
 
-### 2. Clone + Setup (→ In Progress)
-
-Триггер: план написан.
-
-1. **Board → In Progress**
-2. `gh repo clone <REPO> /workspace/group/<repo-name>`
-3. `cd /workspace/group/<repo-name>`
-4. Создай ветку через `gh issue develop <N> --repo <REPO> --name <branch-name> --checkout`
-5. Проверь README / структуру проекта
-
-### 3. Implement (Coding Orchestrator)
+### 2. Implement (Coding Orchestrator)
 
 Ты **ОРКЕСТРАТОР** — coding teammate пишет код, ты управляешь.
 **НЕ пиши код сам. Всё через coding teammate.**
@@ -144,13 +137,13 @@ UPDATED=$(echo "$BODY" | sed 's/- \[ \] Phase <M>/- [x] Phase <M>/')
 gh issue edit <N> --repo <REPO> --body "$UPDATED"
 ```
 
-### 4. PR + CI
+### 3. PR + CI
 
 1. `gh pr create --title "feat: описание" --body "Closes #<N>"`
 2. `gh pr checks <number> --watch`
 3. CI failed → spawn fix teammate
 
-### 5. Code Review (→ Code Review)
+### 4. Code Review (→ Code Review)
 
 1. **Board → Code Review**
 2. Ревью проходит **автоматически** — агенты НЕ ревьюят друг друга
@@ -165,7 +158,7 @@ gh issue edit <N> --repo <REPO> --body "$UPDATED"
 1. Fix по замечаниям → push → CI → repeat
 2. **Max 3 раунда** → эскалация
 
-### 6. Merge & Close (→ Done)
+### 5. Merge & Close (→ Done)
 
 Триггер: `APPROVED` от Claude Code Action или Codex.
 
@@ -174,7 +167,7 @@ gh issue edit <N> --repo <REPO> --body "$UPDATED"
 3. **Board → Done**
 4. `gh issue comment <N> --repo <REPO> --body "Done. Merged via PR #<number>."`
 
-### 7. Release (по команде PO)
+### 6. Release (по команде PO)
 
 Триггер: `release v<X.Y.Z>` от `@stensmir`.
 
